@@ -8,19 +8,28 @@
         <transition name="fade">
             <div v-if="view === 'menu'" class="z-50 flex flex-col gap-6 w-full max-w-xs">
                 <button @click="view = 'game'" class="mission-btn bg-blue-600">
-                    <span class="text-xs opacity-70">APRIL MISSION</span>
-                    <span class="text-lg font-bold">4月：打怪獸集氣任務</span>
+                    <span class="text-xs opacity-70">Daily mission</span>
+                    <span class="text-lg font-bold">💥擊退巴爾坦星人💥</span>
+                </button>
+
+                <button @click="view = 'aprilnotebook'" class="mission-btn bg-red-600">
+                    <span class="text-xs opacity-70">April MISSION</span>
+                    <span class="text-lg font-bold">4月任務：斯派修姆光線</span>
                 </button>
 
                 <button @click="view = 'notebook'" class="mission-btn bg-red-600">
                     <span class="text-xs opacity-70">MAY MISSION</span>
-                    <span class="text-lg font-bold">5月：成為超人發光發熱</span>
+                    <span class="text-lg font-bold">5月任務：成為超人吧</span>
                 </button>
             </div>
         </transition>
 
         <transition name="fade">
             <WhackAMole v-if="view === 'game'" @back="view = 'menu'" />
+        </transition>
+
+        <transition name="fade">
+            <AprilMission v-if="view === 'aprilnotebook'" @back="view = 'menu'" />
         </transition>
 
         <transition name="fade">
@@ -34,6 +43,7 @@
     import { ref, onMounted } from 'vue';
     import { missionData } from './missions.js';
     import EntryPage from './components/EntryPage.vue';
+    import AprilMission from './components/AprilMission.vue';
     import MissionNotebook from './components/MissionNotebook.vue';
     import WhackAMole from './components/WhackAMole.vue';
 

@@ -1,92 +1,93 @@
 <template>
-    <div class="w-full flex flex-col items-center justify-center">
-
+    <div class="w-full flex flex-col items-center justify-center p-4">
         <div v-if="isFlashActive" class="fixed inset-0 z-[100] bg-white pointer-events-none animate-ultra-flash"></div>
 
-        <div v-if="!showSurprise" class="w-full max-w-md mb-4 flex justify-start px-2">
-            <button
-                    @click="$emit('back')"
-                    class="group flex items-center gap-2 text-stone-400 hover:text-red-500 transition-all font-bold text-sm"
-            >
-                <span class="text-lg group-hover:-translate-x-1 transition-transform">←</span>
-                <span>返回選單</span>
+        <div v-if="!showGame && !showSurprise" class="w-full max-w-md mb-6 flex justify-start">
+            <button @click="$emit('back')" class="text-white/40 hover:text-red-500 transition-colors font-mono text-[10px] tracking-[0.3em] uppercase">
+                << System_Back
             </button>
         </div>
 
-        <div v-if="!showSurprise"
-             class="relative w-full max-w-md bg-[#FFF9F0] min-h-[85vh] rounded-r-lg shadow-2xl border-l-[15px] border-red-600 p-8 overflow-hidden transition-opacity duration-300"
-             :class="{ 'opacity-0': isFlashActive }">
+        <div v-if="!showGame && !showSurprise"
+             class="w-full max-w-md bg-gradient-to-b from-stone-200 to-stone-400 rounded-[2.5rem] p-8 shadow-[0_20px_50px_rgba(0,0,0,0.5)] border-t-4 border-red-600 relative overflow-hidden">
 
-            <div class="absolute left-[-8px] top-0 h-full flex flex-col justify-around py-4">
-                <div v-for="i in 15" :key="i" class="w-3 h-1 bg-stone-400 rounded-full shadow-inner"></div>
+            <div class="absolute top-4 right-8 w-12 h-12 bg-red-600/10 rounded-full blur-xl"></div>
+
+            <div class="mb-10 text-center">
+                <h2 class="text-2xl font-black text-slate-900 italic tracking-tighter uppercase mb-1">Hero Activation</h2>
+                <p class="text-[9px] text-slate-500 font-mono tracking-widest uppercase italic">May_Mission / Security_Level_S</p>
             </div>
 
-            <div class="mb-8 border-b border-gray-300 pb-2 pl-2">
-                <h1 class="text-2xl font-black text-gray-800 italic tracking-tighter uppercase">Ultraman Mission: May</h1>
-                <p class="text-[10px] text-gray-400 font-mono uppercase tracking-widest">Earth Office / Dept. Exit</p>
+            <div class="grid grid-cols-5 gap-3">
+                <div v-for="day in 11" :key="day"
+                     @click="handleGridClick(day)"
+                     class="group relative rounded-xl border-2 transition-all duration-300 flex items-center justify-center overflow-hidden cursor-pointer"
+                     :class="[
+                        getGridStyle(day),
+                        day === 11 ? 'col-span-full h-24' : 'aspect-[3/4]'
+                     ]">
+
+                    <span class="absolute top-1.5 left-2 text-[10px] font-bold z-10" :class="isUnlocked(day) ? 'text-red-600' : 'text-slate-400'">5/{{ day }}</span>
+
+                    <img v-if="isUnlocked(day)"
+                         :src="getImageUrl(allMissions[day]?.imageName)"
+                         class="w-full h-full object-cover animate-fade-in" />
+
+                    <div v-else-if="isToday(day)" class="flex flex-col items-center">
+                        <span class="text-xl animate-pulse">?</span>
+                        <span class="text-[8px] font-bold text-red-600">ACTIVATE</span>
+                    </div>
+
+                    <div v-else class="opacity-20 text-xs">🔒</div>
+                </div>
             </div>
+        </div>
 
-            <div class="space-y-5">
-                <div class="grid grid-cols-5 gap-3">
-                    <div v-for="day in 10" :key="day" @click="handleGridClick(day)"
-                         class="group relative aspect-square border-2 border-gray-200 rounded-xl flex items-center justify-center bg-white cursor-pointer active:scale-95 transition-all shadow-sm hover:border-red-400 hover:shadow-md"
-                         :class="[ (day < currentDay || completedDays.includes(day)) ? 'bg-stone-50' : '' ]">
+        <transition name="fade">
+            <div v-if="showGame" class="fixed inset-0 z-[110] bg-slate-950 flex flex-col items-center justify-center p-6">
+                <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,_#1e1b4b_0%,_#020617_100%)] opacity-60"></div>
+                <h3 class="relative text-cyan-400 font-mono text-sm mb-2 tracking-[0.3em]">HERO_MATCHING_TEST</h3>
+                <p class="relative text-white/30 text-[9px] mb-8 uppercase">翻開兩兩相同的英雄徽章以同步能量</p>
 
-                        <span class="absolute top-1.5 left-1.5 text-[10px] font-bold text-stone-300 group-hover:text-red-500 z-10">5/{{ day }}</span>
-
-                        <img v-if="allMissions[day]?.imageName" :src="getImageUrl(allMissions[day].imageName)"
-                             :alt="allMissions[day].name" class="w-[75%] h-[75%] object-contain filter transition-all"
-                             :class="[ (day < currentDay || completedDays.includes(day)) ? 'grayscale opacity-30' : 'group-hover:scale-110 animate-monster-bounce' ]" />
-                        <div v-else class="text-xl opacity-10">🛡️</div>
-
-                        <div v-if="day < currentDay || completedDays.includes(day)"
-                             class="absolute inset-0 flex items-center justify-center rotate-[-15deg] pointer-events-none z-10">
-                            <div class="border-2 border-red-500/50 text-red-500/50 font-black px-1.5 py-0.5 text-[9px] rounded uppercase tracking-wider bg-white/80 backdrop-blur-sm">Cleared</div>
+                <div class="grid grid-cols-3 gap-4 w-full max-w-xs relative">
+                    <div v-for="(card, index) in gameCards" :key="index"
+                         @click="flipCard(index)"
+                         class="aspect-[3/4] relative perspective-1000 cursor-pointer">
+                        <div class="w-full h-full transition-all duration-500 preserve-3d" :class="{ 'rotate-y-180': card.flipped || card.matched }">
+                            <div class="absolute inset-0 bg-gradient-to-br from-red-700 to-red-900 rounded-xl border-2 border-white/20 flex items-center justify-center backface-hidden shadow-xl">
+                                <div class="w-8 h-8 border border-white/30 rounded-full flex items-center justify-center">
+                                    <div class="w-1.5 h-1.5 bg-white rounded-full animate-ping"></div>
+                                </div>
+                            </div>
+                            <div class="absolute inset-0 bg-white rounded-xl border-2 border-red-500 rotate-y-180 backface-hidden flex items-center justify-center p-2">
+                                <img :src="getImageUrl(card.imageName)" class="w-full h-full object-contain" />
+                            </div>
                         </div>
                     </div>
                 </div>
-
-                <div @click="handleGridClick(11)"
-                     class="group relative h-36 border-4 border-double border-red-600 rounded-2xl bg-white flex items-center justify-center cursor-pointer active:scale-[0.99] transition-all shadow-xl hover:shadow-red-200/50 overflow-hidden"
-                     :class="[ (11 < currentDay || completedDays.includes(11)) ? 'bg-stone-50' : '' ]">
-
-                    <div class="absolute inset-0 opacity-[0.03] flex items-center justify-center text-6xl font-black text-red-900 rotate-12 pointer-events-none">FINAL</div>
-
-                    <div class="flex flex-col items-center relative z-10">
-                        <span class="text-[10px] font-bold text-red-600 tracking-widest bg-red-100 px-2 py-0.5 rounded-full mb-1">MAY 11 - THE FINAL DAY</span>
-                        <img v-if="allMissions[11]?.imageName" :src="getImageUrl(allMissions[11].imageName)"
-                             class="h-16 object-contain group-hover:scale-110 transition-transform"
-                             :class="[ (11 < currentDay || completedDays.includes(11)) ? 'grayscale opacity-30' : '' ]" />
-                        <div v-else class="text-5xl">🦖</div>
-                        <p class="mt-2 text-sm font-black text-gray-700 tracking-wider">任務圓滿達成，獲得自由！</p>
-                    </div>
-
-                    <div v-if="11 < currentDay || completedDays.includes(11)"
-                         class="absolute inset-0 flex items-center justify-center rotate-[-10deg] pointer-events-none z-10">
-                        <div class="border-4 border-red-500/60 text-red-500/60 font-black px-4 py-1 text-xl rounded-xl uppercase tracking-widest bg-white/90 backdrop-blur-sm">Accomplished</div>
-                    </div>
-                </div>
+                <button @click="showGame = false" class="mt-12 text-white/20 text-[10px] uppercase tracking-[0.4em] hover:text-white transition-colors">Abort_Mission</button>
             </div>
-
-            <div class="absolute bottom-6 right-8 text-stone-300 font-mono text-[10px]">PG_EXIT_LOG_P.01</div>
-        </div>
+        </transition>
 
         <transition name="fade-overlay">
-            <div v-if="showSurprise" class="fixed inset-0 z-50 bg-black flex flex-col items-center justify-center p-8 overflow-hidden">
-                <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-950 via-black to-black opacity-80 pointer-events-none"></div>
-                <div class="relative bg-white rounded-3xl p-10 w-full max-w-sm shadow-[0_0_60px_rgba(255,255,255,0.15)] text-center animate-card-appear">
-                    <div class="absolute -top-5 left-1/2 -translate-x-1/2 bg-red-600 text-white font-bold px-5 py-1 rounded-full shadow-lg text-sm tracking-widest">MISSION 5/{{ selectedDay }}</div>
-                    <div class="h-40 flex items-center justify-center mb-6 mt-4">
-                        <img v-if="currentMission?.imageName" :src="getImageUrl(currentMission.imageName)" class="max-h-full object-contain animate-monster-bounce" />
-                        <div v-else class="text-7xl">👾</div>
-                    </div>
-                    <h2 class="text-2xl font-extrabold text-gray-900 mb-6 tracking-tight">{{ currentMission?.name || '超人' }} 已降臨！</h2>
-                    <div class="bg-stone-50 rounded-xl p-6 mb-10 border border-stone-100">
-                        <p class="text-gray-700 leading-relaxed italic text-sm">"{{ surpriseContent }}"</p>
-                    </div>
-                    <button @click="closeSurprise" class="w-full bg-red-600 text-white font-bold py-4 rounded-2xl shadow-lg hover:bg-red-700 active:scale-95 transition-all tracking-wider text-lg">返回地球繼續倒數</button>
+            <div v-if="showSurprise" class="fixed inset-0 z-[120] bg-slate-950/95 flex flex-col items-center justify-center p-8 text-center" @click="closeSurprise">
+                <div class="relative max-w-sm w-full animate-card-appear" @click.stop>
+                    <div class="absolute -top-12 left-1/2 -translate-x-1/2 w-32 h-32 bg-red-600 rounded-full blur-[80px] opacity-20"></div>
+                    <img :src="getImageUrl(allMissions[selectedDay]?.imageName)" class="h-64 mx-auto mb-8 drop-shadow-[0_0_30px_rgba(255,255,255,0.2)]" />
+                    <h3 class="text-white font-black text-2xl italic mb-2 tracking-tighter uppercase">{{ allMissions[selectedDay]?.name }}</h3>
+                    <div class="h-1 w-12 bg-red-600 mx-auto mb-6"></div>
+                    <p class="text-red-100/80 leading-loose font-medium italic mb-10 text-lg">"{{ allMissions[selectedDay]?.content }}"</p>
+                    <button @click="closeSurprise" class="px-12 py-3 bg-red-600 text-white font-bold rounded-full tracking-widest hover:bg-red-700 shadow-lg shadow-red-900/40 transition-all">Roger_</button>
                 </div>
-                <div class="mt-10 text-white/30 font-mono text-xs tracking-widest animate-pulse">REMAINING DAYS: {{ 11 - selectedDay }} / LOCATION: M78_SPACE</div>
+            </div>
+        </transition>
+
+        <transition name="pop">
+            <div v-if="alertBox.show" class="fixed inset-0 z-[200] flex items-center justify-center p-8 bg-black/60 backdrop-blur-sm" @click="alertBox.show = false">
+                <div class="bg-stone-100 p-8 rounded-[2.5rem] border-t-8 border-red-600 max-w-[280px] w-full text-center shadow-2xl relative overflow-hidden" @click.stop>
+                    <p class="text-slate-800 font-bold leading-relaxed mb-8">{{ alertBox.message }}</p>
+                    <button @click="alertBox.show = false" class="px-8 py-2 rounded-full bg-slate-200 text-slate-600 font-black text-[10px] uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all">Understand</button>
+                </div>
             </div>
         </transition>
     </div>
@@ -96,19 +97,28 @@
     import { ref, watch } from 'vue';
     import { missionData } from '../missions.js';
 
-    // 宣告發送事件
-    defineEmits(['back']);
+    const emit = defineEmits(['back']);
 
-    const isFlashActive = ref(false);
-    const showSurprise = ref(false);
-    const selectedDay = ref(0);
-    const surpriseContent = ref('');
-    const currentMission = ref(null);
-    const allMissions = ref(missionData);
+    // 日期判定邏輯
+    const today = new Date();
+    // 測試用
+    const currentMonth = 5;
+    const currentRealDay = 1;
+    //正式用
+    // const currentMonth = today.getMonth() + 1; // 1-12
+    // const currentRealDay = today.getDate();
+
 
     const completedDays = ref(JSON.parse(localStorage.getItem('ultraman_completed_days') || '[]'));
-    const today = new Date();
-    const currentDay = ref(today.getMonth() === 4 ? today.getDate() : 0);
+    const allMissions = ref(missionData);
+    const isFlashActive = ref(false);
+    const showSurprise = ref(false);
+    const showGame = ref(false);
+    const selectedDay = ref(0);
+    const alertBox = ref({ show: false, message: '' });
+
+    const gameCards = ref([]);
+    const flippedCards = ref([]);
 
     watch(completedDays, (newVal) => {
         localStorage.setItem('ultraman_completed_days', JSON.stringify(newVal));
@@ -119,18 +129,78 @@
         return new URL(`../assets/ultramans/${imageName}`, import.meta.url).href;
     };
 
+    // 核心解鎖邏輯修正
+    const isToday = (day) => currentMonth === 5 && day === currentRealDay;
+
+    const isUnlocked = (day) => {
+        // 1. 如果已經過 5 月了，全部解鎖
+        if (currentMonth > 5) return true;
+        // 2. 如果還沒到 5 月，全部不顯示超人 (除非已完成)
+        if (currentMonth < 5) return completedDays.value.includes(day);
+
+        // 3. 現在正是 5 月：
+        if (day < currentRealDay) return true; // 已經過的日期直接顯示
+        if (day === currentRealDay && completedDays.value.includes(day)) return true; // 今天玩完才解鎖
+        return false;
+    };
+
+    const getGridStyle = (day) => {
+        if (isUnlocked(day)) return 'border-white bg-white shadow-md';
+        if (isToday(day)) return 'border-red-600 bg-red-50 shadow-[0_0_15px_rgba(220,38,38,0.2)] animate-pulse';
+        return 'border-slate-300 bg-slate-200/40 opacity-50 cursor-pointer';
+    };
+
     const handleGridClick = (day) => {
-        const mission = allMissions.value[day];
-        if (mission) {
-            if (!completedDays.value.includes(day)) {
-                completedDays.value.push(day);
+        selectedDay.value = day;
+
+        // 判定是否為未來
+        const isFuture = (currentMonth < 5) || (currentMonth === 5 && day > currentRealDay);
+
+        if (isUnlocked(day)) {
+            showSurprise.value = true;
+        } else if (isToday(day)) {
+            setupGame();
+        } else if (isFuture) {
+            alertBox.value = { show: true, message: '英雄尚未抵達，請耐心等待訊號發射。' };
+        } else {
+            // 這邊處理「5月內但沒玩到」的邏輯，依照妳的要求，沒玩到但過了直接顯示 (由 isUnlocked 處理了)
+            showSurprise.value = true;
+        }
+    };
+
+    const setupGame = () => {
+        // 隨機選三個超人做配對 (6張牌)
+        const images = ['Baltan.png', 'Pigmon.png', 'Logo.png'];
+        const deck = [...images, ...images].sort(() => Math.random() - 0.5);
+        gameCards.value = deck.map(img => ({ imageName: img, flipped: false, matched: false }));
+        showGame.value = true;
+    };
+
+    const flipCard = (index) => {
+        if (flippedCards.value.length === 2 || gameCards.value[index].flipped || gameCards.value[index].matched) return;
+        gameCards.value[index].flipped = true;
+        flippedCards.value.push(index);
+        if (flippedCards.value.length === 2) {
+            const [i1, i2] = flippedCards.value;
+            if (gameCards.value[i1].imageName === gameCards.value[i2].imageName) {
+                gameCards.value[i1].matched = true;
+                gameCards.value[i2].matched = true;
+                flippedCards.value = [];
+                if (gameCards.value.every(c => c.matched)) {
+                    setTimeout(() => {
+                        showGame.value = false;
+                        if (!completedDays.value.includes(selectedDay.value)) completedDays.value.push(selectedDay.value);
+                        isFlashActive.value = true;
+                        setTimeout(() => { showSurprise.value = true; isFlashActive.value = false; }, 500);
+                    }, 800);
+                }
+            } else {
+                setTimeout(() => {
+                    gameCards.value[i1].flipped = false;
+                    gameCards.value[i2].flipped = false;
+                    flippedCards.value = [];
+                }, 800);
             }
-            currentMission.value = mission;
-            selectedDay.value = day;
-            surpriseContent.value = mission.content;
-            isFlashActive.value = true;
-            setTimeout(() => { showSurprise.value = true; }, 400);
-            setTimeout(() => { isFlashActive.value = false; }, 700);
         }
     };
 
@@ -138,13 +208,15 @@
 </script>
 
 <style scoped>
-    /* 動畫部分保持不變 */
+    .perspective-1000 { perspective: 1000px; }
+    .preserve-3d { transform-style: preserve-3d; }
+    .backface-hidden { backface-visibility: hidden; }
+    .rotate-y-180 { transform: rotateY(180deg); }
+
     @keyframes ultra-flash-burst {
-        0% { opacity: 0; transform: scale(0.5); }
-        20% { opacity: 1; transform: scale(1); }
-        40% { opacity: 0.3; }
-        60% { opacity: 1; }
-        100% { opacity: 0; transform: scale(1); }
+        0% { opacity: 0; }
+        20% { opacity: 1; }
+        100% { opacity: 0; }
     }
     .animate-ultra-flash { animation: ultra-flash-burst 0.7s ease-out forwards; }
 
@@ -152,14 +224,14 @@
         0% { opacity: 0; transform: translateY(30px) scale(0.9); }
         100% { opacity: 1; transform: translateY(0) scale(1); }
     }
-    .animate-card-appear { animation: card-appear 0.5s ease-out 0.2s forwards; opacity: 0; }
+    .animate-card-appear { animation: card-appear 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards; }
 
-    @keyframes monster-bounce {
-        0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-4px); }
+    .pop-enter-active { animation: pop-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    @keyframes pop-in {
+        0% { transform: scale(0.8); opacity: 0; }
+        100% { transform: scale(1); opacity: 1; }
     }
-    .animate-monster-bounce { animation: monster-bounce 3s ease-in-out infinite; }
 
-    .fade-overlay-enter-active, .fade-overlay-leave-active { transition: opacity 0.4s ease; }
-    .fade-overlay-enter-from, .fade-overlay-leave-to { opacity: 0; }
+    .fade-enter-active, .fade-leave-active { transition: opacity 0.5s; }
+    .fade-enter-from, .fade-leave-to { opacity: 0; }
 </style>
