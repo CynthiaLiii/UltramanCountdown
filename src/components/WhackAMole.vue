@@ -1,36 +1,42 @@
 <template>
-    <div class="z-50 w-full max-w-md bg-stone-100 rounded-3xl p-6 shadow-2xl text-center">
-        <div class="flex justify-between items-center mb-4">
-            <button @click="$emit('back')" class="text-stone-500 font-bold hover:text-red-600 transition-colors">← 返回</button>
+    <div class="z-50 w-full max-w-sm bg-stone-100 rounded-[2.5rem] p-6 shadow-2xl text-center flex flex-col max-h-[90vh]">
+
+        <div class="flex justify-between items-center mb-2">
+            <button @click="$emit('back')" class="text-stone-400 font-bold hover:text-red-600 transition-colors p-2 text-xs italic">
+                ← BACK
+            </button>
             <div class="flex gap-2">
-                <div class="bg-stone-200 px-3 py-1 rounded-full text-[10px] font-bold">最高: {{ highScore }}</div>
-                <div class="bg-red-100 text-red-600 px-3 py-1 rounded-full text-[10px] font-bold">剩餘: {{ timeLeft }}s</div>
+                <div class="bg-stone-200/50 px-2 py-1 rounded-lg text-[10px] font-mono">BEST: {{ highScore }}</div>
+                <div class="bg-red-100 text-red-600 px-2 py-1 rounded-lg text-[10px] font-bold">TIME: {{ timeLeft }}s</div>
             </div>
         </div>
 
-        <h2 class="text-xl font-black mb-1 italic">怪獸擊退戰</h2>
-        <div
-                class="text-5xl font-mono mb-6 transition-all duration-100"
-                :class="{ 'text-red-600 scale-110 animate-shake': isHittingWrong, 'text-blue-600': !isHittingWrong }"
-        >
-            {{ score }}
+        <div class="mb-4">
+            <h2 class="text-lg font-black text-stone-800 italic uppercase tracking-tighter">Monster Hunter</h2>
+            <div
+                    class="text-5xl font-mono font-bold transition-all duration-100 tracking-tighter"
+                    :class="{ 'text-red-600 scale-110 animate-shake': isHittingWrong, 'text-blue-600': !isHittingWrong }"
+            >
+                {{ score }}
+            </div>
         </div>
 
-        <div class="grid grid-cols-3 gap-3 bg-stone-300 p-3 rounded-2xl shadow-inner relative">
+        <div class="grid grid-cols-3 gap-3 bg-stone-300 p-3 rounded-2xl shadow-inner relative mx-auto w-full max-w-[280px]">
             <div v-for="(hole, index) in 9" :key="index"
-                 class="aspect-square bg-stone-800/20 rounded-xl relative overflow-hidden">
+                 @mousedown.prevent="hit(index)"
+                 @touchstart.prevent="hit(index)"
+                 class="aspect-square bg-stone-800/20 rounded-xl relative overflow-hidden cursor-pointer ...">
 
                 <div class="absolute inset-0 shadow-[inset_0_4px_12px_rgba(0,0,0,0.4)] pointer-events-none"></div>
 
                 <transition name="mole">
                     <div v-if="activeHole === index"
-                         @click="hit(index)"
-                         class="absolute inset-0 flex items-center justify-center cursor-pointer select-none p-2">
+                         class="absolute inset-0 flex items-center justify-center select-none p-2 pointer-events-none">
 
-                        <div v-if="currentRole === 'monster'" class="text-5xl drop-shadow-md">👾</div>
+                        <div v-if="currentRole === 'monster'" class="text-4xl drop-shadow-md">👾</div>
                         <img v-else :src="getImageUrl(currentRole)" class="w-full h-full object-contain drop-shadow-lg" />
 
-                        <div v-if="hitFeedback" class="absolute -top-2 font-black animate-bounce" :class="hitFeedback.color">
+                        <div v-if="hitFeedback" class="absolute -top-2 font-black animate-bounce text-sm" :class="hitFeedback.color">
                             {{ hitFeedback.text }}
                         </div>
                     </div>
@@ -38,13 +44,16 @@
             </div>
         </div>
 
-        <div class="mt-8">
+        <div class="mt-6">
             <button v-if="!isPlaying && canPlayToday" @click="startGame"
-                    class="w-full bg-stone-900 text-white py-4 rounded-2xl font-black text-xl shadow-lg active:scale-95 transition-all">
-                START MISSION
+                    class="w-full bg-stone-900 text-white py-4 rounded-2xl font-black text-xl shadow-lg active:scale-95 transition-all uppercase tracking-widest">
+                Start Mission
             </button>
-            <div v-else-if="!isPlaying" class="py-4 bg-stone-200 text-stone-400 rounded-2xl font-bold">
-                今日能量已耗盡 ⚡
+            <div v-else-if="!isPlaying" class="py-4 bg-stone-200 text-stone-400 rounded-2xl font-bold text-sm">
+                能量補充中 (明日再戰) ⚡
+            </div>
+            <div v-else class="text-[10px] font-mono text-stone-400 animate-pulse tracking-widest uppercase">
+                Combatting Monsters...
             </div>
         </div>
     </div>
@@ -56,19 +65,21 @@
 
     const emit = defineEmits(['back']);
 
-    // 遊戲邏輯
+    // 遊戲邏輯狀態
     const score = ref(0);
     const timeLeft = ref(20);
     const activeHole = ref(null);
-    const currentRole = ref(''); // 'monster' 或 隨機超人圖片名
+    const currentRole = ref('');
     const isPlaying = ref(false);
     const isHittingWrong = ref(false);
     const hitFeedback = ref(null);
 
+    // --- 關鍵優化：增加唯一 ID 追蹤 ---
+    const currentSpawnId = ref(0);
+
     const highScore = ref(parseInt(localStorage.getItem('mole_high_score')) || 0);
     const canPlayToday = ref(localStorage.getItem('mole_last_date') !== new Date().toDateString());
 
-    // 隨機獲取一個超人圖片
     const getRandomUltraman = () => {
         const keys = Object.keys(missionData);
         const randomKey = keys[Math.floor(Math.random() * keys.length)];
@@ -95,70 +106,89 @@
     const runGameLoop = () => {
         if (!isPlaying.value) return;
 
+        // 生成當下這隻怪獸的唯一 ID
+        const localSpawnId = Date.now() + Math.random();
+        currentSpawnId.value = localSpawnId;
+
         activeHole.value = Math.floor(Math.random() * 9);
-        // 70% 怪獸, 30% 超人
         currentRole.value = Math.random() > 0.3 ? 'monster' : getRandomUltraman();
 
-        // 速度優化：隨著時間越來越快 (從 800ms 降到 450ms)
-        const speed = Math.max(450, 800 - (20 - timeLeft.value) * 20);
+        // 隨著時間縮短怪獸停留的時間 (400ms ~ 750ms)
+        const speed = Math.max(400, 750 - (20 - timeLeft.value) * 25);
 
         setTimeout(() => {
-            activeHole.value = null;
-            if (isPlaying.value) setTimeout(runGameLoop, Math.random() * 200 + 100);
+            // 只有當「目前的怪獸」還是「這一支」時，才執行清空
+            // 防止舊的計時器清掉剛冒頭的新怪獸
+            if (currentSpawnId.value === localSpawnId) {
+                activeHole.value = null;
+            }
+
+            // 縮短兩隻出現之間的空窗期 (50ms ~ 150ms)
+            if (isPlaying.value) {
+                const nextDelay = Math.max(50, 150 - (20 - timeLeft.value) * 5);
+                setTimeout(runGameLoop, nextDelay);
+            }
         }, speed);
     };
 
     const hit = (index) => {
-        if (activeHole.value !== index) return;
+        // 判定修正：確保點擊時有怪獸，且位置正確
+        if (activeHole.value === null || activeHole.value !== index || !isPlaying.value) return;
 
         if (currentRole.value === 'monster') {
             score.value += 10;
-            showFeedback("+10", "text-blue-500");
+            showFeedback("+10", "text-blue-500 font-black");
         } else {
             score.value = Math.max(0, score.value - 20);
             isHittingWrong.value = true;
-            showFeedback("-20!!", "text-red-600");
+            showFeedback("-20!!", "text-red-600 font-black");
             setTimeout(() => isHittingWrong.value = false, 300);
         }
+
+        // 擊中後立刻作廢 ID 並清空洞口，讓 runGameLoop 能更快觸發下一輪
         activeHole.value = null;
+        currentSpawnId.value = 0;
     };
 
     const showFeedback = (text, color) => {
         hitFeedback.value = { text, color };
-        setTimeout(() => hitFeedback.value = null, 500);
+        // 縮短反饋顯示時間，避免視覺堆疊過久
+        setTimeout(() => hitFeedback.value = null, 300);
     };
 
     const endGame = () => {
         isPlaying.value = false;
+        activeHole.value = null;
+        currentSpawnId.value = 0;
+
         if (score.value > highScore.value) {
             highScore.value = score.value;
-            localStorage.setItem('mole_high_score', highScore.value);
+            localStorage.setItem('mole_high_score', highScore.value.toString());
         }
+
         localStorage.setItem('mole_last_date', new Date().toDateString());
         canPlayToday.value = false;
-        alert(`任務結束！你的得分：${score.value}`);
+
+        let reward = "阿昕的鼓勵獎！";
+        if (score.value >= 150) reward = "一杯手搖飲！";
+        if (score.value >= 250) reward = "阿昕請客吃大餐！";
+
+        // 用 setTimeout 稍微延遲一下彈窗，讓最後一秒的分數跳完
+        setTimeout(() => {
+            alert(`任務結束！你的得分：${score.value}\n獲得獎品：${reward}`);
+        }, 100);
     };
 </script>
 
 <style scoped>
-    /* 怪獸/超人 跳出來的動畫 */
-    .mole-enter-active {
-        transition: all 0.1s ease-out;
-    }
-    .mole-leave-active {
-        transition: all 0.1s ease-in;
-    }
-    .mole-enter-from, .mole-leave-to {
-        transform: translateY(100%);
-    }
+    .mole-enter-active { transition: transform 0.05s ease-out; }
+    .mole-leave-active { transition: transform 0.05s ease-in; }
+    .mole-enter-from, .mole-leave-to { transform: translateY(100%); opacity: 0; }
 
-    /* 扣分時的震動效果 */
     @keyframes shake {
         0%, 100% { transform: translateX(0); }
-        25% { transform: translateX(-5px); }
-        75% { transform: translateX(5px); }
+        25% { transform: translateX(-4px); }
+        75% { transform: translateX(4px); }
     }
-    .animate-shake {
-        animation: shake 0.1s infinite;
-    }
+    .animate-shake { animation: shake 0.1s infinite; }
 </style>
