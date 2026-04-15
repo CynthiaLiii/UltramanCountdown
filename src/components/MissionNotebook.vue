@@ -1,7 +1,17 @@
 <template>
-    <div class="w-full flex items-center justify-center">
+    <div class="w-full flex flex-col items-center justify-center">
 
         <div v-if="isFlashActive" class="fixed inset-0 z-[100] bg-white pointer-events-none animate-ultra-flash"></div>
+
+        <div v-if="!showSurprise" class="w-full max-w-md mb-4 flex justify-start px-2">
+            <button
+                    @click="$emit('back')"
+                    class="group flex items-center gap-2 text-stone-400 hover:text-red-500 transition-all font-bold text-sm"
+            >
+                <span class="text-lg group-hover:-translate-x-1 transition-transform">←</span>
+                <span>返回選單</span>
+            </button>
+        </div>
 
         <div v-if="!showSurprise"
              class="relative w-full max-w-md bg-[#FFF9F0] min-h-[85vh] rounded-r-lg shadow-2xl border-l-[15px] border-red-600 p-8 overflow-hidden transition-opacity duration-300"
@@ -84,7 +94,10 @@
 
 <script setup>
     import { ref, watch } from 'vue';
-    import { missionData } from '../missions.js'; // 因為在 components 夾裡，用 ../ 找 src 下的檔案
+    import { missionData } from '../missions.js';
+
+    // 宣告發送事件
+    defineEmits(['back']);
 
     const isFlashActive = ref(false);
     const showSurprise = ref(false);
@@ -103,7 +116,6 @@
 
     const getImageUrl = (imageName) => {
         if (!imageName) return '';
-        // 路徑改為 ../assets，因為 components 資料夾跟 assets 是平級的
         return new URL(`../assets/ultramans/${imageName}`, import.meta.url).href;
     };
 
@@ -126,7 +138,7 @@
 </script>
 
 <style scoped>
-    /* 這裡放筆記本專用的動畫 CSS */
+    /* 動畫部分保持不變 */
     @keyframes ultra-flash-burst {
         0% { opacity: 0; transform: scale(0.5); }
         20% { opacity: 1; transform: scale(1); }
