@@ -114,7 +114,7 @@
     const handleDayClick = (day) => {
         selectedDay.value = day;
         if (day > currentRealDay) {
-            showAlert("星路尚未交會，請耐心等待星光凝聚。");
+            showAlert("能量尚在努力產生中...，");
             return;
         }
         if (isCollected(day)) {
@@ -122,7 +122,7 @@
         } else if (isToday(day)) {
             startCollection();
         } else {
-            showAlert("這份能量已沉入銀河深處，明天請準時赴約。");
+            showAlert("唉呀，能量消失了，請記得要來收集喔");
         }
     };
 
