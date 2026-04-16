@@ -3,16 +3,25 @@
 
         <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-blue-500 to-transparent opacity-50"></div>
 
+        <div class="w-full max-w-md mb-6 flex justify-start">
+            <button @click="$emit('back')" class="text-white/40 hover:text-blue-500 transition-colors font-mono text-[10px] tracking-[0.3em] uppercase">
+                << Back
+            </button>
+        </div>
+
         <div class="mb-6">
             <div class="flex justify-between items-end mb-1 px-1">
-                <span class="text-[10px] text-blue-400 font-mono tracking-widest uppercase">Global Defense Progress</span>
-                <span class="text-blue-400 font-mono text-xs">{{ (totalAccumulatedScore / 100).toFixed(1) }}%</span>
+                <span class="text-[10px] text-blue-400 font-mono tracking-widest uppercase">揍扁喔厚厚！但別忘了皮古蒙是好朋友喔~</span>
+                <span class="text-blue-400 font-mono text-xs">
+            {{ Math.min((totalAccumulatedScore / 2000) * 100, 100).toFixed(1) }}%
+        </span>
             </div>
+
             <div class="h-3 w-full bg-slate-800 rounded-full border border-slate-700 overflow-hidden p-[2px]">
                 <div class="h-full bg-gradient-to-r from-blue-600 to-cyan-400 shadow-[0_0_10px_#22d3ee] transition-all duration-1000"
-                     :style="{ width: (totalAccumulatedScore / 100) + '%' }"></div>
+                     :style="{ width: Math.min((totalAccumulatedScore / 2000) * 100, 100) + '%' }"></div>
             </div>
-            <p class="text-[9px] text-slate-500 mt-1 font-mono uppercase italic">Target: 10,000 Energy Units</p>
+            <p class="text-[9px] text-slate-500 mt-1 font-mono uppercase italic">Target: 2,000 Energy Units</p>
         </div>
 
         <div class="flex justify-between items-center mb-4 bg-slate-800/50 rounded-xl p-3 border border-slate-700">
@@ -22,7 +31,7 @@
             </div>
             <div class="text-right">
                 <p class="text-[9px] text-slate-400 uppercase font-bold">Today's Cap</p>
-                <p class="text-lg font-mono text-blue-400">{{ todayContribution }}/500</p>
+                <p class="text-lg font-mono text-blue-400">{{ todayContribution }}/300</p>
             </div>
         </div>
 
@@ -47,13 +56,12 @@
 
         <div class="mt-6 flex flex-col gap-3">
             <button v-if="!isPlaying" @click="startGame"
-                    class="w-full bg-blue-700 hover:bg-blue-600 text-white py-4 rounded-2xl font-black text-xl shadow-[0_4px_0_rgb(29,78,216)] active:translate-y-1 active:shadow-none transition-all uppercase tracking-widest border-b-4 border-blue-900">
+                    class="w-full bg-blue-700 hover:bg-blue-600 text-white py-2 rounded-2xl font-black text-l shadow-[0_4px_0_rgb(29,78,216)] active:translate-y-1 active:shadow-none transition-all uppercase tracking-widest border-b-4 border-blue-900">
                 Execute Mission
             </button>
             <div v-else class="text-[10px] text-blue-400 animate-pulse font-mono tracking-[0.2em] uppercase">
                 Time Remaining: {{ timeLeft }}s
             </div>
-            <button @click="$emit('back')" class="text-slate-500 text-[10px] font-bold uppercase tracking-widest hover:text-white transition-colors">Abort Terminal</button>
         </div>
 
         <transition name="fade">
@@ -67,8 +75,8 @@
                             <p class="text-blue-600 font-black text-xs tracking-widest mb-1 uppercase">Mission Accomplished</p>
                             <h3 class="text-2xl font-black italic mb-4">禮物兌換券</h3>
                             <div class="bg-slate-50 border-y-2 border-slate-100 py-4 mb-4">
-                                <p class="text-sm font-medium text-slate-600">恭喜擊退巴爾坦星人</p>
-                                <p class="text-lg font-bold text-slate-900 mt-1">憑此券解鎖阿昕特殊服裝</p>
+                                <p class="text-sm font-medium text-slate-600">成功擊退巴爾坦星人</p>
+                                <p class="text-lg font-bold text-slate-900 mt-1">恭喜獲得阿昕特殊服裝解鎖券</p>
                             </div>
                             <p class="text-[10px] text-slate-400 font-mono mb-6 italic">SERIAL: SSSP-2026-HERO</p>
                             <button @click="showCoupon = false" class="w-full bg-slate-900 text-white py-3 rounded-xl font-bold">記得截圖再關閉喔！</button>
@@ -165,7 +173,7 @@
         isPlaying.value = false;
 
         // 計算本次遊戲對累積進度的貢獻
-        const remainingCap = 500 - todayContribution.value;
+        const remainingCap = 300 - todayContribution.value;
         const actualContribution = Math.min(score.value, remainingCap > 0 ? remainingCap : 0);
 
         if (actualContribution > 0) {
@@ -175,8 +183,8 @@
             localStorage.setItem('today_contribution_score', todayContribution.value.toString());
             localStorage.setItem('total_accumulated_score', totalAccumulatedScore.value.toString());
 
-            // 檢查是否達成 10000 分
-            if (totalAccumulatedScore.value >= 10000 && localStorage.getItem('coupon_awarded') !== 'true') {
+            // 檢查是否達成 2000 分
+            if (totalAccumulatedScore.value >= 2000 && localStorage.getItem('coupon_awarded') !== 'true') {
                 showCoupon.value = true;
                 localStorage.setItem('coupon_awarded', 'true');
             }
@@ -187,7 +195,7 @@
             localStorage.setItem('mole_high_score', highScore.value.toString());
         }
 
-        alert(`戰鬥結束！本次積分：${score.value}\n今日貢獻值：+${actualContribution}\n${actualContribution < score.value ? '(已達今日 500 分上限)' : ''}`);
+        alert(`戰鬥結束！本次積分：${score.value}\n今日貢獻值：+${actualContribution}\n${actualContribution < score.value ? '(已達今日 300 分上限)' : ''}`);
     };
 </script>
 

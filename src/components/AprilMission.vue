@@ -2,10 +2,16 @@
     <div class="z-50 w-full max-w-sm bg-gradient-to-b from-[#0f172a] via-[#1e1b4b] to-[#020617] rounded-[3.5rem] p-8 shadow-[0_20px_50px_rgba(30,58,138,0.5)] flex flex-col relative overflow-hidden border border-white/10">
 
         <div class="absolute top-[-10%] left-[-10%] w-[120%] h-[40%] bg-gradient-to-r from-purple-500/20 via-cyan-500/20 to-blue-500/20 blur-[80px] rotate-12"></div>
-        <div class="absolute bottom-0 left-0 w-full h-full opacity-30 pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/stardust.png')]"></div>
+        <div class="absolute top-[-10%] left-[-10%] w-[120%] h-[40%] bg-gradient-to-r from-purple-500/20 via-cyan-500/20 to-blue-500/20 blur-[80px] rotate-12 pointer-events-none"></div>
+
+        <div class="w-full max-w-md mb-6 flex justify-start relative z-20">
+            <button @click="$emit('back')" class="text-white/40 hover:text-blue-300 transition-colors font-mono text-[10px] tracking-[0.3em] uppercase p-2">
+                << Back
+            </button>
+        </div>
 
         <div class="relative z-10 text-center mb-10">
-            <h2 class="text-white font-medium tracking-[0.6em] uppercase text-xs mb-1 opacity-60">Galaxy Path</h2>
+            <h2 class="text-white font-medium tracking-[0.4em] uppercase text-xs mb-1 opacity-60">光之國｜收集你的等離子能量</h2>
             <div class="h-[1px] w-12 bg-gradient-to-r from-transparent via-cyan-400 to-transparent mx-auto"></div>
         </div>
 
@@ -22,16 +28,12 @@
             </div>
         </div>
 
-        <button @click="$emit('back')" class="relative z-10 w-full py-4 text-white/30 text-[10px] font-light tracking-[0.5em] hover:text-white transition-colors uppercase">
-            Back to Station
-        </button>
-
         <transition name="fade">
             <div v-if="isCollecting" class="fixed inset-0 z-[70] bg-[#020617] flex items-center justify-center overflow-hidden">
                 <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,_#1e1b4b_0%,_#020617_100%)]"></div>
                 <div v-for="s in 20" :key="'star'+s" class="absolute w-1 h-1 bg-white rounded-full opacity-20" :style="getRandomStarPos()"></div>
 
-                <div class="text-white/40 absolute top-20 font-light tracking-[0.4em] text-[10px] uppercase">能量共鳴中 ({{ collectedOrbs.length }}/5)</div>
+                <div class="text-white/40 absolute top-20 font-light tracking-[0.4em] text-[10px] uppercase">等離子能量 ({{ collectedOrbs.length }}/5)</div>
 
                 <div v-for="n in 5" :key="n">
                     <div v-if="!collectedOrbs.includes(n)"
@@ -45,10 +47,10 @@
                 <transition name="flash">
                     <div v-if="showReward" class="absolute inset-0 bg-white z-[80] flex items-center justify-center p-12 text-center" @click="closeReward">
                         <div class="max-w-xs animate-text-focus">
-                            <p class="text-cyan-800 font-medium text-[10px] tracking-[0.5em] mb-8 uppercase">Star Energy Synced</p>
+                            <p class="text-cyan-800 font-medium text-[10px] tracking-[0.5em] mb-8 uppercase">完成今天的能量累績</p>
                             <h3 class="text-xl font-bold text-slate-800 mb-6 leading-relaxed">{{ aprilData[selectedDay]?.title }}</h3>
                             <p class="text-slate-500 leading-loose font-light italic text-sm">"{{ aprilData[selectedDay]?.logs }}"</p>
-                            <p class="mt-16 text-slate-300 text-[9px] tracking-widest">點擊任意處收攏星光</p>
+                            <p class="mt-16 text-slate-300 text-[9px] tracking-widest">點擊任意處 存進變身器</p>
                         </div>
                     </div>
                 </transition>

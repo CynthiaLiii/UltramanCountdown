@@ -2,20 +2,20 @@
     <div class="w-full flex flex-col items-center justify-center p-4">
         <div v-if="isFlashActive" class="fixed inset-0 z-[100] bg-white pointer-events-none animate-ultra-flash"></div>
 
-        <div v-if="!showGame && !showSurprise" class="w-full max-w-md mb-6 flex justify-start">
-            <button @click="$emit('back')" class="text-white/40 hover:text-red-500 transition-colors font-mono text-[10px] tracking-[0.3em] uppercase">
-                << System_Back
+        <div v-if="!showGame && !showSurprise" class="w-full max-w-md mb-6 flex justify-start relative z-20">
+            <button @click="$emit('back')" class="text-white/40 hover:text-red-500 transition-colors font-mono text-[10px] tracking-[0.3em] uppercase p-2">
+                << Back
             </button>
         </div>
 
         <div v-if="!showGame && !showSurprise"
              class="w-full max-w-md bg-gradient-to-b from-stone-200 to-stone-400 rounded-[2.5rem] p-8 shadow-[0_20px_50px_rgba(0,0,0,0.5)] border-t-4 border-red-600 relative overflow-hidden">
 
-            <div class="absolute top-4 right-8 w-12 h-12 bg-red-600/10 rounded-full blur-xl"></div>
+            <div class="absolute top-4 right-8 w-12 h-12 bg-red-600/10 rounded-full blur-xl pointer-events-none"></div>
 
             <div class="mb-10 text-center">
-                <h2 class="text-2xl font-black text-slate-900 italic tracking-tighter uppercase mb-1">Hero Activation</h2>
-                <p class="text-[9px] text-slate-500 font-mono tracking-widest uppercase italic">May_Mission / Security_Level_S</p>
+                <h2 class="text-2xl font-black text-slate-900 tracking-tighter uppercase mb-1">地球｜與鹹蛋超人相遇</h2>
+                <p class="text-[9px] text-slate-500 font-mono tracking-widest uppercase italic">Ultraman Cards</p>
             </div>
 
             <div class="grid grid-cols-5 gap-3">
@@ -27,18 +27,25 @@
                         day === 11 ? 'col-span-full h-24' : 'aspect-[3/4]'
                      ]">
 
+                    <div v-if="day === 11 && isUnlocked(day)"
+                         class="absolute inset-0 bg-hero-radiance animate-hero-pulse"></div>
+
+                    <div v-if="day === 11 && isUnlocked(day)"
+                         class="absolute inset-[-2px] rounded-xl animate-border-flow border-2 border-transparent z-0"></div>
+
                     <span class="absolute top-1.5 left-2 text-[10px] font-bold z-10" :class="isUnlocked(day) ? 'text-red-600' : 'text-slate-400'">5/{{ day }}</span>
 
                     <img v-if="isUnlocked(day)"
                          :src="getImageUrl(allMissions[day]?.imageName)"
-                         class="w-full h-full object-cover animate-fade-in" />
+                         class="animate-fade-in z-10 relative"
+                         :class="day === 11 ? 'h-[85%] object-contain' : 'w-full h-full object-cover'" />
 
-                    <div v-else-if="isToday(day)" class="flex flex-col items-center">
+                    <div v-else-if="isToday(day)" class="flex flex-col items-center z-10">
                         <span class="text-xl animate-pulse">?</span>
                         <span class="text-[8px] font-bold text-red-600">ACTIVATE</span>
                     </div>
 
-                    <div v-else class="opacity-20 text-xs">🔒</div>
+                    <div v-else class="opacity-20 text-xs z-10">🔒</div>
                 </div>
             </div>
         </div>
@@ -46,13 +53,10 @@
         <transition name="fade">
             <div v-if="showGame" class="fixed inset-0 z-[110] bg-slate-950 flex flex-col items-center justify-center p-6">
                 <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,_#1e1b4b_0%,_#020617_100%)] opacity-60"></div>
-                <h3 class="relative text-cyan-400 font-mono text-sm mb-2 tracking-[0.3em]">HERO_MATCHING_TEST</h3>
-                <p class="relative text-white/30 text-[9px] mb-8 uppercase">翻開兩兩相同的英雄徽章以同步能量</p>
-
+                <h3 class="relative text-cyan-400 font-mono text-sm mb-2 tracking-[0.3em]">鹹蛋超人對對碰</h3>
+                <p class="relative text-white/30 text-[9px] mb-8 uppercase">翻開兩兩相同的角色配對</p>
                 <div class="grid grid-cols-3 gap-4 w-full max-w-xs relative">
-                    <div v-for="(card, index) in gameCards" :key="index"
-                         @click="flipCard(index)"
-                         class="aspect-[3/4] relative perspective-1000 cursor-pointer">
+                    <div v-for="(card, index) in gameCards" :key="index" @click="flipCard(index)" class="aspect-[3/4] relative perspective-1000 cursor-pointer">
                         <div class="w-full h-full transition-all duration-500 preserve-3d" :class="{ 'rotate-y-180': card.flipped || card.matched }">
                             <div class="absolute inset-0 bg-gradient-to-br from-red-700 to-red-900 rounded-xl border-2 border-white/20 flex items-center justify-center backface-hidden shadow-xl">
                                 <div class="w-8 h-8 border border-white/30 rounded-full flex items-center justify-center">
@@ -77,7 +81,7 @@
                     <h3 class="text-white font-black text-2xl italic mb-2 tracking-tighter uppercase">{{ allMissions[selectedDay]?.name }}</h3>
                     <div class="h-1 w-12 bg-red-600 mx-auto mb-6"></div>
                     <p class="text-red-100/80 leading-loose font-medium italic mb-10 text-lg">"{{ allMissions[selectedDay]?.content }}"</p>
-                    <button @click="closeSurprise" class="px-12 py-3 bg-red-600 text-white font-bold rounded-full tracking-widest hover:bg-red-700 shadow-lg shadow-red-900/40 transition-all">Roger_</button>
+                    <button @click="closeSurprise" class="px-12 py-3 bg-red-600 text-white font-bold rounded-full tracking-widest hover:bg-red-700 shadow-lg shadow-red-900/40 transition-all">Roger</button>
                 </div>
             </div>
         </transition>
@@ -98,15 +102,14 @@
     import { missionData } from '../missions.js';
 
     const emit = defineEmits(['back']);
-
-    // 日期判定邏輯
     const today = new Date();
-    // 測試用
-    const currentMonth = 5;
-    const currentRealDay = 1;
-    //正式用
-    // const currentMonth = today.getMonth() + 1; // 1-12
-    // const currentRealDay = today.getDate();
+    // 正式日期
+    const currentMonth = today.getMonth() + 1;
+    const currentRealDay = today.getDate();
+
+    // 測試用日期(測完記得註解)
+    // const currentMonth = 5;
+    // const currentRealDay = 10;
 
 
     const completedDays = ref(JSON.parse(localStorage.getItem('ultraman_completed_days') || '[]'));
@@ -116,7 +119,6 @@
     const showGame = ref(false);
     const selectedDay = ref(0);
     const alertBox = ref({ show: false, message: '' });
-
     const gameCards = ref([]);
     const flippedCards = ref([]);
 
@@ -129,22 +131,18 @@
         return new URL(`../assets/ultramans/${imageName}`, import.meta.url).href;
     };
 
-    // 核心解鎖邏輯修正
     const isToday = (day) => currentMonth === 5 && day === currentRealDay;
 
     const isUnlocked = (day) => {
-        // 1. 如果已經過 5 月了，全部解鎖
-        if (currentMonth > 5) return true;
-        // 2. 如果還沒到 5 月，全部不顯示超人 (除非已完成)
+        if (currentMonth >5) return true;
         if (currentMonth < 5) return completedDays.value.includes(day);
-
-        // 3. 現在正是 5 月：
-        if (day < currentRealDay) return true; // 已經過的日期直接顯示
-        if (day === currentRealDay && completedDays.value.includes(day)) return true; // 今天玩完才解鎖
+        if (day < currentRealDay) return true;
+        if (day === currentRealDay && completedDays.value.includes(day)) return true;
         return false;
     };
 
     const getGridStyle = (day) => {
+        if (day === 11 && isUnlocked(day)) return 'border-transparent bg-[#1e1b4b] shadow-[0_0_25px_rgba(34,211,238,0.5)]';
         if (isUnlocked(day)) return 'border-white bg-white shadow-md';
         if (isToday(day)) return 'border-red-600 bg-red-50 shadow-[0_0_15px_rgba(220,38,38,0.2)] animate-pulse';
         return 'border-slate-300 bg-slate-200/40 opacity-50 cursor-pointer';
@@ -152,27 +150,39 @@
 
     const handleGridClick = (day) => {
         selectedDay.value = day;
-
-        // 判定是否為未來
         const isFuture = (currentMonth < 5) || (currentMonth === 5 && day > currentRealDay);
-
         if (isUnlocked(day)) {
             showSurprise.value = true;
         } else if (isToday(day)) {
             setupGame();
         } else if (isFuture) {
-            alertBox.value = { show: true, message: '英雄尚未抵達，請耐心等待訊號發射。' };
+            alertBox.value = { show: true, message: '這位鹹蛋超人還沒抵達喔' };
         } else {
-            // 這邊處理「5月內但沒玩到」的邏輯，依照妳的要求，沒玩到但過了直接顯示 (由 isUnlocked 處理了)
             showSurprise.value = true;
         }
     };
 
     const setupGame = () => {
-        // 隨機選三個超人做配對 (6張牌)
-        const images = ['Baltan.png', 'Pigmon.png', 'Logo.png'];
-        const deck = [...images, ...images].sort(() => Math.random() - 0.5);
-        gameCards.value = deck.map(img => ({ imageName: img, flipped: false, matched: false }));
+        // 1. 從 missionData 中取得所有超人的 imageName 清單
+        const allHeroImages = Object.values(missionData)
+            .map(m => m.imageName)
+            .filter(img => img); // 確保圖片路徑存在
+
+        // 2. 隨機洗牌並挑選前 3 張
+        const selectedImages = allHeroImages
+            .sort(() => Math.random() - 0.5)
+            .slice(0, 3);
+
+        // 3. 加上原本固定的怪獸（可選，增加難度），或者只用超人
+        // 這裡我們維持 3 種樣式（共 6 張牌）
+        const deck = [...selectedImages, ...selectedImages].sort(() => Math.random() - 0.5);
+
+        gameCards.value = deck.map(img => ({
+            imageName: img,
+            flipped: false,
+            matched: false
+        }));
+
         showGame.value = true;
     };
 
@@ -208,6 +218,32 @@
 </script>
 
 <style scoped>
+    /* ⭐ 5/11 專屬：神聖放射光芒背景 */
+    .bg-hero-radiance {
+        background:
+                conic-gradient(from 0deg at 50% 50%, #fff 0deg, #22d3ee 20deg, transparent 45deg, transparent 315deg, #22d3ee 340deg, #fff 360deg),
+                conic-gradient(from 180deg at 50% 50%, #fff 0deg, #ef4444 20deg, transparent 45deg, transparent 315deg, #ef4444 340deg, #fff 360deg),
+                #1e1b4b;
+        background-blend-mode: screen;
+        filter: blur(4px);
+        z-index: 0;
+    }
+
+    /* 緩慢的呼吸縮放動畫 */
+    @keyframes hero-pulse {
+        0%, 100% { transform: scale(1); opacity: 0.6; }
+        50% { transform: scale(1.05); opacity: 0.9; }
+    }
+    .animate-hero-pulse { animation: hero-pulse 4s ease-in-out infinite; }
+
+    /* ⭐ 5/11 專屬：神聖流光邊框 */
+    @keyframes border-flow {
+        0%, 100% { border-color: #fff; box-shadow: 0 0 15px #fff; }
+        50% { border-color: #22d3ee; box-shadow: 0 0 20px #22d3ee; }
+    }
+    .animate-border-flow { animation: border-flow 3s linear infinite; }
+
+    /* 基礎動畫 */
     .perspective-1000 { perspective: 1000px; }
     .preserve-3d { transform-style: preserve-3d; }
     .backface-hidden { backface-visibility: hidden; }
@@ -234,4 +270,10 @@
 
     .fade-enter-active, .fade-leave-active { transition: opacity 0.5s; }
     .fade-enter-from, .fade-leave-to { opacity: 0; }
+
+    .animate-fade-in { animation: fade-in 0.5s ease-out forwards; }
+    @keyframes fade-in {
+        from { opacity: 0; transform: scale(0.9); }
+        to { opacity: 1; transform: scale(1); }
+    }
 </style>
